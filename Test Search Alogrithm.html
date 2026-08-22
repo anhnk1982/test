@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bài Kiểm Tra Trắc Nghiệm AI Search Algorithms</title>
+    <style>
+        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #f4f7f6; color: #333; margin: 0; padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; background: #fff; padding: 30px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        h1 { text-align: center; color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+        
+        /* Form nhập tên */
+        #start-screen { text-align: center; padding: 40px 20px; }
+        .input-group { margin-top: 20px; }
+        input[type="text"] { width: 80%; max-width: 350px; padding: 12px; border: 2px solid #bdc3c7; border-radius: 6px; font-size: 16px; outline: none; }
+        input[type="text"]:focus { border-color: #3498db; }
+        button { background-color: #3498db; color: white; border: none; padding: 12px 25px; font-size: 16px; border-radius: 6px; cursor: pointer; margin-top: 15px; transition: background 0.3s; }
+        button:hover { background-color: #2980b9; }
+
+        /* Màn hình làm bài */
+        #quiz-screen { display: none; }
+        .student-info { background: #e8f4f8; padding: 10px 15px; border-radius: 6px; font-weight: bold; margin-bottom: 20px; color: #2c3e50; }
+        .question-card { margin-bottom: 25px; padding: 15px; border: 1px solid #e0e0e0; border-radius: 8px; background: #fafafa; }
+        .question-title { font-weight: 600; font-size: 16px; margin-bottom: 12px; color: #2c3e50; }
+        .options label { display: block; background: #fff; padding: 10px 15px; margin-bottom: 8px; border: 1px solid #ddd; border-radius: 5px; cursor: pointer; transition: all 0.2s; }
+        .options label:hover { background: #f0f7ff; border-color: #3498db; }
+        .options input[type="radio"] { margin-right: 10px; }
+
+        /* Màn hình kết quả */
+        #result-screen { display: none; text-align: center; padding: 30px 10px; }
+        .score-box { background: #2ecc71; color: white; padding: 20px; border-radius: 8px; font-size: 24px; font-weight: bold; margin: 20px 0; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- 1. Màn hình nhập tên -->
+    <div id="start-screen">
+        <h1>BÀI KIỂM TRA TRẮC NGHIỆM AI SEARCH</h1>
+        <p>Hệ thống sẽ chọn ngẫu nhiên <strong>40 câu hỏi</strong> từ ngân hàng 60 câu.</p>
+        <div class="input-group">
+            <input type="text" id="student-name" placeholder="Nhập họ và tên sinh viên..." required>
+            <br>
+            <button onclick="startQuiz()">Bắt đầu làm bài</button>
+        </div>
+    </div>
+
+    <!-- 2. Màn hình làm bài -->
+    <div id="quiz-screen">
+        <div class="student-info">Sinh viên: <span id="display-name"></span></div>
+        <form id="quiz-form">
+            <div id="questions-container"></div>
+            <button type="button" onclick="submitQuiz()" style="width: 100%; font-weight: bold; font-size: 18px;">Nộp bài</button>
+        </form>
+    </div>
+
+    <!-- 3. Màn hình báo điểm -->
+    <div id="result-screen">
+        <h1>KẾT QUẢ BÀI KIỂM TRA</h1>
+        <p style="font-size: 18px;">Sinh viên: <strong id="result-name"></strong></p>
+        <div class="score-box" id="result-score"></div>
+        <p id="result-detail"></p>
+        <button onclick="location.reload()">Làm bài thi mới</button>
+    </div>
+</div>
+
+<script>
+// Ngân hàng 60 câu hỏi về AI Search Algorithms
+const questionBank = [
+    // --- Part 1: Problem Representation & Uninformed Search ---
+    { q: "Which search algorithm expands the shallowest unexpanded node first?", options: ["Breadth-First Search (BFS)", "Depth-First Search (DFS)", "Uniform Cost Search", "A* Search"], answer: 0 },
+    { q: "What data structure is typically used to implement Breadth-First Search (BFS)?", options: ["Queue (FIFO)", "Stack (LIFO)", "Priority Queue", "Array"], answer: 0 },
+    { q: "What data structure is typically used to implement Depth-First Search (DFS)?", options: ["Stack (LIFO)", "Queue (FIFO)", "Priority Queue", "Hash Map"], answer: 0 },
+    { q: "What is the space complexity of Depth-First Search (DFS) with branching factor b and maximum depth m?", options: ["O(b * m)", "O(b^m)", "O(b + m)", "O(m^b)"], answer: 0 },
+    { q: "Which search algorithm combines the space efficiency of DFS and the completeness of BFS?", options: ["Iterative Deepening DFS (IDDFS)", "Depth-First Search", "Uniform Cost Search", "Best-First Search"], answer: 0 },
+    { q: "In state-space representation, a state space consists of:", options: ["Initial state, actions, transition model, goal test, path cost", "Nodes and edges only", "Heuristic functions and goals", "Minimax values"], answer: 0 },
+    { q: "Is Breadth-First Search (BFS) complete when the branching factor b is finite?", options: ["Yes", "No", "Only if graph is tree", "Only if heuristic is admissible"], answer: 0 },
+    { q: "Uniform Cost Search expands nodes based on which criteria?", options: ["Lowest path cost g(n)", "Lowest heuristic value h(n)", "Highest depth", "Random choice"], answer: 0 },
+    { q: "What happens to DFS in a state space with infinite paths if loop checking is not implemented?", options: ["It may get stuck in an infinite loop and fail to terminate", "It finds the optimal path faster", "It converts automatically to BFS", "It reduces memory usage"], answer: 0 },
+    { q: "In an Uninformed Search algorithm, what information is available to the agent?", options: ["Only the problem definition (no domain knowledge)", "Domain-specific heuristic values", "Goal state distance estimates", "Optimal path costs upfront"], answer: 0 },
+    { q: "What is the time complexity of BFS with branching factor b and solution depth d?", options: ["O(b^d)", "O(b * d)", "O(d^b)", "O(b + d)"], answer: 0 },
+    { q: "Depth-Limited Search avoids infinite loops by:", options: ["Setting a maximum depth limit L", "Using a priority queue", "Sorting heuristic values", "Checking all paths simultaneously"], answer: 0 },
+    { q: "Which search strategy expands the node with the lowest path cost g(n) from the start node?", options: ["Uniform Cost Search (UCS)", "Greedy Best-First Search", "Depth-First Search", "Alpha-Beta Search"], answer: 0 },
+    { q: "Iterative Deepening Search calls Depth-Limited Search with depth limits of:", options: ["0, 1, 2, 3, ...", "Infinity", "Branching factor b", "Path cost g(n)"], answer: 0 },
+    { q: "In a tree search, a repeated state can cause:", options: ["Redundant work or infinite loops", "Guaranteed optimality", "Lower space complexity", "Faster convergence"], answer: 0 },
+
+    // --- Part 2: Heuristic Search & Local Methods ---
+    { q: "Greedy Best-First Search expands nodes based solely on:", options: ["Heuristic evaluation function h(n)", "Path cost g(n)", "Combined cost f(n) = g(n) + h(n)", "Node depth"], answer: 0 },
+    { q: "A heuristic function h(n) estimates:", options: ["The cost from node n to the nearest goal", "The cost from the start node to n", "The total number of nodes in the graph", "The branching factor"], answer: 0 },
+    { q: "Which local search algorithm continually moves in the direction of increasing value/fitness?", options: ["Hill-Climbing Search", "BFS", "Uniform Cost Search", "A* Search"], answer: 0 },
+    { q: "What major problem can Hill-Climbing encounter?", options: ["Local maxima, plateaus, and ridges", "Out of memory errors", "Infinite BFS queue size", "Sub-optimal heuristic admissibility"], answer: 0 },
+    { q: "Beam Search is a variant of Best-First Search that:", options: ["Limits the number of kept nodes at each level to a fixed width k", "Uses stack instead of queue", "Guarantees finding optimal path", "Ignores heuristics"], answer: 0 },
+    { q: "In Simulated Annealing, what controls the probability of accepting a worse state?", options: ["Temperature parameter T", "Branching factor b", "Path cost g(n)", "Depth limit L"], answer: 0 },
+    { q: "Greedy Best-First Search is optimal: ", options: ["False, it is not guaranteed to be optimal", "True, always optimal", "True, if h(n) is admissible", "True, if graph is a tree"], answer: 0 },
+    { q: "Which heuristic for the 8-puzzle counts the number of misplaced tiles?", options: ["Misplaced Tiles Heuristic", "Manhattan Distance Heuristic", "Euclidean Distance", "Cost-to-go Heuristic"], answer: 0 },
+    { q: "The Manhattan Distance heuristic sums:", options: ["Vertical and horizontal distances of tiles from their goal positions", "Straight-line distances", "Number of misplaced tiles", "Edge weights"], answer: 0 },
+    { q: "Local Search algorithms evaluate and modify:", options: ["One or more current states rather than building search paths", "The entire tree history from start", "Only goal states", "All frontier nodes simultaneously"], answer: 0 },
+    { q: "In Stochastic Hill-Climbing, how is the next move chosen?", options: ["Randomly from among uphill moves", "Always the steepest ascent", "The worst move available", "Based on depth first"], answer: 0 },
+    { q: "What happens in Hill-Climbing when a plateau is reached?", options: ["The search gets stuck because all neighbors have the same value", "It instantly terminates with optimal goal", "It switches to A* search", "It expands exponentially"], answer: 0 },
+    { q: "In Genetic Algorithms, new offspring states are generated using operations like:", options: ["Crossover and Mutation", "Pruning and Minimax", "Backtracking and Deepening", "Filtering and Smoothing"], answer: 0 },
+    { q: "Which search algorithm is non-systematic and does not retain path history?", options: ["Local Search (e.g., Hill-Climbing)", "Breadth-First Search", "A* Search", "Uniform Cost Search"], answer: 0 },
+    { q: "Which of the following heuristics for 8-puzzle is dominate (h2 >= h1 for all nodes)?", options: ["Manhattan Distance dominates Misplaced Tiles", "Misplaced Tiles dominates Manhattan Distance", "They are identical", "Neither dominates"], answer: 0 },
+
+    // --- Part 3: Optimal Search & A* Algorithm ---
+    { q: "What evaluation function f(n) is used in A* search?", options: ["f(n) = g(n) + h(n)", "f(n) = g(n) - h(n)", "f(n) = h(n)", "f(n) = g(n) * h(n)"], answer: 0 },
+    { q: "A heuristic h(n) is admissible if it:", options: ["Never overestimates the cost to reach the goal", "Never underestimates the cost to reach the goal", "Is equal to g(n)", "Is strictly negative"], answer: 0 },
+    { q: "A heuristic h(n) is consistent (or monotonic) if for every node n and successor n' with step cost c:", options: ["h(n) <= c(n, a, n') + h(n')", "h(n) >= c(n, a, n') + h(n')", "h(n) = g(n')", "h(n) = 0"], answer: 0 },
+    { q: "If a heuristic is consistent, A* using Graph-Search is guaranteed to be:", options: ["Optimal and complete", "Incomplete", "Sub-optimal", "Exponential in space only"], answer: 0 },
+    { q: "In A* search, g(n) represents:", options: ["The actual cost to reach node n from the start node", "The estimated cost from n to goal", "The depth limit", "The branching factor"], answer: 0 },
+    { q: "Branch and Bound search expands paths in order of:", options: ["Accumulated path cost g(n)", "Heuristic estimate h(n)", "Node depth d", "Alphabetical order"], answer: 0 },
+    { q: "What happens if h(n) = 0 for all nodes in A* Search?", options: ["A* reduces to Uniform Cost Search", "A* reduces to DFS", "A* fails to terminate", "A* becomes Greedy Best-First Search"], answer: 0 },
+    { q: "What is the primary drawback of standard A* Search?", options: ["High memory/space consumption (keeps all nodes in memory)", "Incompleteness", "Non-optimality", "Inability to handle trees"], answer: 0 },
+    { q: "Memory-bounded A* variants include:", options: ["IDA* (Iterative Deepening A*) and SMA*", "BFS and DFS", "Minimax and Alpha-Beta", "Hill-Climbing and Genetic Search"], answer: 0 },
+    { q: "If h(n) overestimates the cost to goal, A* search:", options: ["May fail to find the optimal path", "Is guaranteed to be optimal", "Runs faster with guaranteed accuracy", "Becomes BFS"], answer: 0 },
+    { q: "Iterative Deepening A* (IDA*) uses which threshold to limit search depth/cutoff?", options: ["f-cost threshold (f = g + h)", "Path cost g-threshold", "Fixed depth integer", "Number of nodes limit"], answer: 0 },
+    { q: "For tree search, A* is optimal if the heuristic is:", options: ["Admissible", "Consistent only", "Inadmissible", "Zero everywhere"], answer: 0 },
+    { q: "If h1(n) <= h2(n) for all n, and both are admissible heuristics, then:", options: ["h2 dominates h1 and expands fewer or equal nodes", "h1 dominates h2", "h1 is better than h2", "Both expand identical nodes always"], answer: 0 },
+    { q: "The condition h(goal) = 0 must hold for any:", options: ["Admissible heuristic function", "Uninformed search algorithm", "State space graph", "Minimax evaluation"], answer: 0 },
+    { q: "In A*, if we re-open closed nodes when a shorter path is found, we can guarantee optimality even if heuristic is:", options: ["Admissible but non-consistent (in Graph Search)", "Negative", "Infinite", "Zero"], answer: 0 },
+
+    // --- Part 4: Game Trees & AND/OR Graphs ---
+    { q: "In adversarial search (games), the Minimax algorithm assumes:", options: ["The opponent plays optimally to minimize our score", "The opponent plays randomly", "The opponent helps us win", "Both players maximize the score"], answer: 0 },
+    { q: "Alpha-Beta Pruning returns the same decision as Minimax but:", options: ["Prunes branches that cannot influence the final decision", "Changes the optimal move", "Requires more memory", "Works only on single-player games"], answer: 0 },
+    { q: "In Alpha-Beta Pruning, Alpha represents:", options: ["The best (highest) value chosen so far for MAX", "The best (lowest) value chosen so far for MIN", "The depth limit", "The root node value"], answer: 0 },
+    { q: "In Alpha-Beta Pruning, Beta represents:", options: ["The best (lowest) value chosen so far for MIN", "The best (highest) value chosen so far for MAX", "The branching factor", "The terminal state cost"], answer: 0 },
+    { q: "Alpha-Beta pruning cuts off a branch when:", options: ["Alpha >= Beta", "Alpha < Beta", "Alpha = 0", "Beta = Infinity"], answer: 0 },
+    { q: "AND/OR graphs are used to represent problems that can be solved by:", options: ["Decomposing into independent subproblems (AO* Search)", "Local search optimization", "Single path trajectories", "Random walk models"], answer: 0 },
+    { q: "In an AND/OR graph, an AND node is solved if:", options: ["ALL of its child subproblems are solved", "AT LEAST ONE child subproblem is solved", "None of its children are solved", "Its heuristic value is 0"], answer: 0 },
+    { q: "In an AND/OR graph, an OR node is solved if:", options: ["AT LEAST ONE of its child subproblems is solved", "ALL of its child subproblems are solved", "Its path cost is 0", "Alpha equals Beta"], answer: 0 },
+    { q: "Which algorithm is designed to find solutions in AND/OR graphs using heuristics?", options: ["AO* Algorithm", "A* Algorithm", "Minimax Algorithm", "BFS Algorithm"], answer: 0 },
+    { q: "In a game tree, terminal nodes are evaluated using a:", options: ["Utility / Evaluation function", "Heuristic path estimate", "Depth limit counter", "Crossover probability"], answer: 0 },
+    { q: "With optimal move ordering, Alpha-Beta pruning reduces time complexity from O(b^m) to:", options: ["O(b^(m/2))", "O(b * m)", "O(m^b)", "O(b)"], answer: 0 },
+    { q: "In Minimax, MAX nodes seek to:", options: ["Maximize the utility value", "Minimize the utility value", "Prune the search tree", "Equalize player scores"], answer: 0 },
+    { q: "In Minimax, MIN nodes seek to:", options: ["Minimize the utility value", "Maximize the utility value", "Randomize actions", "Increase game depth"], answer: 0 },
+    { q: "Subproblem decomposition in problem-solving search is best modeled with:", options: ["AND/OR Search Trees", "Simple State-Space Graphs", "Genetic Algorithms", "Constraint Satisfaction Problems only"], answer: 0 },
+    { q: "In game playing with real-time constraints, full Minimax search is replaced by:", options: ["Evaluation functions at a fixed cutoff depth", "Breadth-First Search to completion", "Random choice moves", "Uniform Cost Search"], answer: 0 }
+];
+
+let selectedQuestions = [];
+let studentName = "";
+
+// Hàm bắt đầu làm bài
+function startQuiz() {
+    const nameInput = document.getElementById('student-name').value.trim();
+    if (!nameInput) {
+        alert("Vui lòng nhập họ và tên sinh viên!");
+        return;
+    }
+    studentName = nameInput;
+
+    // Chọn ngẫu nhiên 40 câu hỏi từ 60 câu
+    selectedQuestions = [...questionBank].sort(() => 0.5 - Math.random()).slice(0, 40);
+
+    // Hiển thị tên & chuyển giao diện
+    document.getElementById('display-name').innerText = studentName;
+    document.getElementById('start-screen').style.display = 'none';
+    document.getElementById('quiz-screen').style.display = 'block';
+
+    renderQuestions();
+}
+
+// Trộn ngẫu nhiên mảng (dùng để tráo đáp án)
+function shuffleArray(array) {
+    let arr = [...array];
+    for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+}
+
+// Hiển thị câu hỏi ra HTML
+function renderQuestions() {
+    const container = document.getElementById('questions-container');
+    container.innerHTML = '';
+
+    selectedQuestions.forEach((qItem, index) => {
+        // Tạo cấu trúc đáp án ngẫu nhiên
+        const optionsObjects = qItem.options.map((opt, i) => ({ text: opt, isCorrect: i === qItem.answer }));
+        const shuffledOptions = shuffleArray(optionsObjects);
+        
+        // Lưu lại đáp án đã tráo vào object để chấm điểm sau
+        qItem.currentOptions = shuffledOptions;
+
+        let qHtml = `<div class="question-card">
+            <div class="question-title">Câu ${index + 1}: ${qItem.q}</div>
+            <div class="options">`;
+        
+        shuffledOptions.forEach((opt, optIndex) => {
+            qHtml += `
+                <label>
+                    <input type="radio" name="question_${index}" value="${optIndex}">
+                    ${String.fromCharCode(65 + optIndex)}. ${opt.text}
+                </label>`;
+        });
+
+        qHtml += `</div></div>`;
+        container.innerHTML += qHtml;
+    });
+}
+
+// Hàm nộp bài & chấm điểm
+function submitQuiz() {
+    let score = 0;
+    let unanswered = 0;
+
+    selectedQuestions.forEach((qItem, index) => {
+        const selected = document.querySelector(`input[name="question_${index}"]:checked`);
+        if (selected) {
+            const selectedIdx = parseInt(selected.value);
+            if (qItem.currentOptions[selectedIdx].isCorrect) {
+                score++;
+            }
+        } else {
+            unanswered++;
+        }
+    });
+
+    if (unanswered > 0) {
+        if (!confirm(`Bạn còn ${unanswered} câu chưa trả lời. Bạn có chắc chắn muốn nộp bài?`)) {
+            return;
+        }
+    }
+
+    // Tính điểm trên thang điểm 10
+    const finalScore10 = ((score / 40) * 10).toFixed(2);
+
+    // Hiển thị màn hình kết quả
+    document.getElementById('quiz-screen').style.display = 'none';
+    document.getElementById('result-screen').style.display = 'block';
+    document.getElementById('result-name').innerText = studentName;
+    document.getElementById('result-score').innerText = `Điểm số: ${finalScore10} / 10`;
+    document.getElementById('result-detail').innerText = `Trả lời đúng: ${score} / 40 câu.`;
+}
+</script>
+
+</body>
+</html>
