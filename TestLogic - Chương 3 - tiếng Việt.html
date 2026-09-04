@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trắc nghiệm Chương 3 — Logic & Suy diễn</title>
+<style>
+  :root{
+    --paper:#FAF7F0;
+    --paper-line:#E7E0CE;
+    --ink:#241F18;
+    --muted:#726A5B;
+    --navy:#1B2A4A;
+    --navy-light:#EAEEF6;
+    --navy-soft:#3C4D74;
+    --red:#9A2B2B;
+    --red-tint:#F7EAEA;
+    --green:#2F6B3A;
+    --green-tint:#EAF3EC;
+  }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; }
+  body{
+    background:var(--paper);
+    background-image:
+      linear-gradient(var(--paper-line) 1px, transparent 1px);
+    background-size: 100% 42px;
+    color:var(--ink);
+    font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-size:16px;
+    line-height:1.55;
+    min-height:100vh;
+  }
+  .wrap{ max-width:800px; margin:0 auto; padding:48px 20px 90px; }
+  h1,h2,h3{ font-family: Georgia, "Times New Roman", serif; font-weight:700; margin:0; }
+  .hidden{ display:none !important; }
+
+  /* ---------- masthead ---------- */
+  .masthead{ text-align:center; margin-bottom:34px; }
+  .masthead .kicker{ color:var(--navy-soft); font-size:14px; letter-spacing:.03em; margin-bottom:6px; }
+  .masthead h1{ font-size:34px; color:var(--navy); line-height:1.2; }
+  .masthead .sub{ color:var(--muted); font-size:15px; margin-top:10px; }
+  .rule{ height:2px; background:var(--navy); width:64px; margin:18px auto 0; }
+
+  /* ---------- card ---------- */
+  .sheet{
+    background:#fff;
+    border:1px solid var(--paper-line);
+    box-shadow: 0 1px 0 var(--paper-line), 0 14px 30px -18px rgba(27,42,74,.35);
+    border-radius:2px;
+  }
+
+  /* ---------- start screen ---------- */
+  .start-card{ padding:36px 40px; }
+  .field label{ display:block; font-size:14px; color:var(--navy); font-weight:600; margin-bottom:8px; }
+  .field input{
+    width:100%; padding:13px 14px; font-size:17px; font-family:inherit;
+    border:1.5px solid var(--paper-line); border-radius:3px; background:var(--paper);
+    color:var(--ink);
+  }
+  .field input:focus{ outline:none; border-color:var(--navy); background:#fff; }
+  .start-actions{ margin-top:22px; }
+  .btn{
+    appearance:none; border:none; cursor:pointer; font-family:inherit;
+    font-size:16px; font-weight:600; padding:13px 26px; border-radius:3px;
+    background:var(--navy); color:#fff; letter-spacing:.01em;
+    transition: transform .12s ease, background .15s ease;
+  }
+  .btn:hover{ background:#243761; }
+  .btn:active{ transform: scale(.98); }
+  .btn.secondary{ background:transparent; color:var(--navy); border:1.5px solid var(--navy); }
+  .btn.secondary:hover{ background:var(--navy-light); }
+  .btn:disabled{ opacity:.45; cursor:not-allowed; }
+  .err{ color:var(--red); font-size:14px; margin-top:8px; min-height:18px; }
+
+  .syllabus{ margin-top:28px; padding-top:22px; border-top:1px dashed var(--paper-line); }
+  .syllabus h3{ font-size:14px; color:var(--navy); text-transform:none; margin-bottom:10px; }
+  .syllabus ul{ margin:0; padding-left:20px; color:var(--muted); font-size:14.5px; }
+  .syllabus li{ margin-bottom:5px; }
+  .meta-row{ display:flex; gap:22px; flex-wrap:wrap; margin-top:20px; color:var(--muted); font-size:14px; }
+  .meta-row b{ color:var(--ink); }
+
+  /* ---------- quiz header (sticky) ---------- */
+  .quiz-bar{
+    position:sticky; top:0; z-index:20; background:var(--paper);
+    padding:14px 0 12px; margin-bottom:6px;
+    border-bottom:1px solid var(--paper-line);
+  }
+  .quiz-bar-inner{ max-width:800px; margin:0 auto; padding:0 20px; }
+  .quiz-bar-row{ display:flex; justify-content:space-between; align-items:baseline; margin-bottom:9px; }
+  .quiz-bar-row .who{ font-weight:700; color:var(--navy); font-size:15px; }
+  .quiz-bar-row .count{ font-size:14px; color:var(--muted); }
+  .progress-track{ height:6px; background:var(--navy-light); border-radius:4px; overflow:hidden; }
+  .progress-fill{ height:100%; background:var(--navy); width:0%; transition:width .25s ease; }
+
+  /* ---------- question ---------- */
+  .qcard{ display:flex; gap:18px; padding:26px 26px 24px; border-bottom:1px solid var(--paper-line); }
+  .qcard:last-child{ border-bottom:none; }
+  .qnum{ font-family:Georgia, serif; font-size:26px; font-weight:700; color:var(--paper-line); min-width:38px; text-align:right; line-height:1.1; }
+  .qcard.answered .qnum{ color:var(--navy); }
+  .qbody{ flex:1; }
+  .qtext{ font-size:16.5px; color:var(--ink); margin-bottom:14px; font-weight:600; }
+  .opt{
+    display:flex; align-items:flex-start; gap:10px; padding:10px 12px; margin-bottom:7px;
+    border:1.5px solid var(--paper-line); border-radius:3px; cursor:pointer;
+    transition: border-color .12s ease, background .12s ease;
+  }
+  .opt:hover{ border-color:var(--navy-soft); }
+  .opt input{ margin-top:3px; accent-color:var(--navy); flex-shrink:0; }
+  .opt.selected{ border-color:var(--navy); background:var(--navy-light); }
+  .opt .otext{ font-size:15.5px; }
+
+  /* ---------- submit bar ---------- */
+  .submit-bar{
+    position:sticky; bottom:0; background:var(--paper);
+    border-top:1px solid var(--paper-line); padding:16px 20px; margin-top:0;
+    display:flex; justify-content:space-between; align-items:center; gap:16px;
+    max-width:800px; margin:0 auto;
+  }
+  .submit-note{ font-size:13.5px; color:var(--muted); }
+
+  /* ---------- results ---------- */
+  .result-head{ text-align:center; padding:38px 30px 8px; }
+  .result-head .kicker{ color:var(--navy-soft); font-size:13px; letter-spacing:.04em; }
+  .result-head h2{ font-size:26px; color:var(--navy); margin-top:6px; }
+  .result-name{ color:var(--muted); font-size:15px; margin-top:4px; }
+
+  .stamp-row{ display:flex; justify-content:center; align-items:center; gap:34px; padding:20px 20px 30px; flex-wrap:wrap; }
+  .stamp{
+    width:132px; height:132px; border-radius:50%;
+    border:3px double var(--red); color:var(--red);
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    transform:rotate(-7deg); font-family:Georgia, serif;
+    flex-shrink:0;
+  }
+  .stamp .score{ font-size:34px; font-weight:700; line-height:1; }
+  .stamp .outof{ font-size:12.5px; margin-top:2px; }
+  .stamp .rank{ font-size:11.5px; letter-spacing:.04em; margin-top:4px; text-transform:uppercase; }
+
+  .stat-list{ font-size:15px; }
+  .stat-list div{ margin-bottom:6px; color:var(--muted); }
+  .stat-list b{ color:var(--ink); }
+
+  .detail-title{ padding:0 26px; margin:6px 0 4px; font-size:14px; color:var(--navy); font-weight:700; }
+  .detail{ padding:6px 26px 26px; }
+  .drow{ display:flex; gap:14px; padding:13px 0; border-bottom:1px solid var(--paper-line); align-items:flex-start; }
+  .drow:last-child{ border-bottom:none; }
+  .dmark{ width:24px; height:24px; border-radius:50%; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700; margin-top:1px; }
+  .dmark.ok{ background:var(--green-tint); color:var(--green); }
+  .dmark.no{ background:var(--red-tint); color:var(--red); }
+  .dq{ font-size:14.5px; }
+  .dq .qt{ font-weight:600; margin-bottom:5px; }
+  .dq .ans{ font-size:13.5px; color:var(--muted); }
+  .dq .ans b.right{ color:var(--green); }
+  .dq .ans b.wrong{ color:var(--red); }
+
+  .result-actions{ padding:8px 26px 34px; text-align:center; }
+
+  @media (max-width:560px){
+    .wrap{ padding:30px 14px 90px; }
+    .masthead h1{ font-size:27px; }
+    .start-card{ padding:26px 22px; }
+    .qcard{ padding:20px 16px; gap:12px; }
+    .qnum{ font-size:20px; min-width:26px; }
+    .stamp-row{ gap:18px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <!-- ================= START SCREEN ================= -->
+  <div id="screen-start">
+    <div class="masthead">
+      <div class="kicker">Chương 3 · Trí tuệ nhân tạo</div>
+      <h1>Trắc nghiệm: Logic &amp; Suy diễn</h1>
+      <div class="rule"></div>
+      <div class="sub">Logic mệnh đề · Logic vị từ cấp 1 · Chứng minh bác bỏ bằng luật phân giải · Suy diễn tiến · Suy diễn lùi</div>
+    </div>
+
+    <div class="sheet start-card">
+      <div class="field">
+        <label for="studentName">Họ và tên thí sinh</label>
+        <input type="text" id="studentName" placeholder="Nhập họ tên của bạn" autocomplete="off">
+        <div class="err" id="nameErr"></div>
+      </div>
+      <div class="start-actions">
+        <button class="btn" id="startBtn">Bắt đầu làm bài</button>
+      </div>
+
+      <div class="meta-row">
+        <div>Số câu thi: <b>35</b> / kho <b>50</b> câu</div>
+        <div>Hình thức: <b>Trắc nghiệm 4 đáp án</b></div>
+        <div>Đề: <b>Ngẫu nhiên mỗi lượt</b></div>
+      </div>
+
+      <div class="syllabus">
+        <h3>Nội dung ôn tập</h3>
+        <ul>
+          <li>Logic mệnh đề: toán tử, bảng chân trị, luật biến đổi tương đương, dạng chuẩn CNF</li>
+          <li>Logic vị từ cấp 1: cú pháp, lượng từ, Skolem hóa, luật thay thế phổ dụng</li>
+          <li>Chứng minh bác bỏ bằng luật phân giải (mệnh đề và vị từ, có hợp nhất)</li>
+          <li>Suy diễn tiến (Forward Chaining) và suy diễn lùi (Backward Chaining)</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= RESULT SCREEN ================= -->
+  <div id="screen-result" class="hidden">
+    <div class="sheet">
+      <div class="result-head">
+        <div class="kicker">Phiếu kết quả</div>
+        <h2>Bài thi đã hoàn thành</h2>
+        <div class="result-name" id="resultName"></div>
+      </div>
+
+      <div class="stamp-row">
+        <div class="stamp" id="stampBox">
+          <div class="score" id="stampScore">0.0</div>
+          <div class="outof">/ 10 điểm</div>
+          <div class="rank" id="stampRank">—</div>
+        </div>
+        <div class="stat-list">
+          <div>Số câu đúng: <b id="statCorrect">0 / 35</b></div>
+          <div>Tỉ lệ chính xác: <b id="statPercent">0%</b></div>
+          <div>Thời gian làm bài: <b id="statTime">0:00</b></div>
+          <div>Ngày thi: <b id="statDate">—</b></div>
+        </div>
+      </div>
+
+      <div class="detail-title">Bảng chi tiết từng câu</div>
+      <div class="detail" id="detailList"></div>
+
+      <div class="result-actions">
+        <button class="btn secondary" id="retryBtn">Làm lại — đề ngẫu nhiên mới</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= QUIZ SCREEN ================= -->
+  <div id="screen-quiz" class="hidden">
+    <div class="quiz-bar">
+      <div class="quiz-bar-inner">
+        <div class="quiz-bar-row">
+          <span class="who" id="quizWho"></span>
+          <span class="count" id="quizCount">0/35 đã trả lời</span>
+        </div>
+        <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+      </div>
+    </div>
+
+    <div class="sheet" id="questionList"></div>
+
+    <div class="submit-bar">
+      <span class="submit-note" id="submitNote">Trả lời hết các câu rồi nộp bài.</span>
+      <button class="btn" id="submitBtn">Nộp bài</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+/* =========================================================
+   NGÂN HÀNG CÂU HỎI (50 câu — 5 chủ đề x 10 câu)
+   ========================================================= */
+const QUESTION_BANK = [
+  // ---- Logic mệnh đề ----
+  {q:"Phép toán nào sau đây có độ ưu tiên cao nhất trong logic mệnh đề?", o:["⇒","∧","¬","⇔"], c:2},
+  {q:"Công thức P ⇒ Q chỉ SAI khi nào?", o:["P đúng, Q đúng","P đúng, Q sai","P sai, Q đúng","P sai, Q sai"], c:1},
+  {q:"Theo luật De Morgan, ¬(P ∧ Q) tương đương với:", o:["¬P ∧ ¬Q","¬P ∨ ¬Q","P ∨ Q","P ∧ Q"], c:1},
+  {q:"CNF là viết tắt của:", o:["Conjunctive Normal Form","Complete Normal Form","Combined Normal Form","Conditional Normal Form"], c:0},
+  {q:"Trong logic mệnh đề, một \u201cliteral\u201d là:", o:["Một câu tuyển đầy đủ","Một biến mệnh đề hoặc phủ định của nó","Một luật suy diễn","Một mệnh đề phức"], c:1},
+  {q:"Công thức nào sau đây thể hiện đúng luật kéo theo (loại bỏ ⇒)?", o:["P⇒Q ≡ ¬P∨Q","P⇒Q ≡ P∨Q","P⇒Q ≡ ¬P∧Q","P⇒Q ≡ Q⇒P"], c:0},
+  {q:"Trong bảng chân trị, P ⇔ Q nhận giá trị Đúng khi nào?", o:["Chỉ khi cả P và Q đều đúng","Khi P và Q có cùng giá trị chân lý","Chỉ khi cả P và Q đều sai","Khi P và Q khác giá trị chân lý"], c:1},
+  {q:"Luật phân phối của phép tuyển đối với phép hội được phát biểu đúng là:", o:["A∨(B∧C) ≡ (A∨B)∧(A∨C)","A∨(B∧C) ≡ (A∨B)∨(A∧C)","A∨(B∧C) ≡ A∧B∧C","A∨(B∧C) ≡ (A∧B)∨C"], c:0},
+  {q:"Câu nào sau đây KHÔNG phải là một clause hợp lệ trong CNF?", o:["A ∨ B ∨ ¬C","A ∧ B","¬A","A ∨ ¬B"], c:1},
+  {q:"Cho hai câu tuyển A∨B và ¬A∨C. Áp dụng luật phân giải, câu suy ra được là:", o:["B ∨ C","A ∨ C","B ∧ C","¬B ∨ ¬C"], c:0},
+
+  // ---- Logic vị từ cấp 1 ----
+  {q:"Ký hiệu ∀ được gọi là:", o:["Lượng từ tồn tại","Lượng từ với mọi","Vị từ","Hàm số"], c:1},
+  {q:"Ký hiệu ∃ được gọi là:", o:["Lượng từ với mọi","Lượng từ tồn tại","Hằng số","Biến tự do"], c:1},
+  {q:"Công thức ¬∀x P(x) tương đương với:", o:["∀x ¬P(x)","∃x ¬P(x)","∃x P(x)","¬∃x P(x)"], c:1},
+  {q:"Trong công thức Love(Hoa, husband(Hoa)), \u201chusband\u201d đóng vai trò là:", o:["Một vị từ","Một hằng số","Một hàm","Một biến"], c:2},
+  {q:"Kỹ thuật thay thế lượng từ tồn tại (∃) bằng một hàm phụ thuộc các biến ∀ đứng trước gọi là:", o:["Hợp nhất (Unification)","Chuẩn hóa CNF","Skolem hóa","Phân giải"], c:2},
+  {q:"Câu \u201cMọi sinh viên đều thích một môn học nào đó\u201d được biểu diễn đúng bằng:", o:["∃x∀y (Student(x)⇒Like(x,y))","∀x∃y (Student(x)⇒Like(x,y))","∀x∀y (Student(x)∧Like(x,y))","∃x∃y (Student(x)∧Like(x,y))"], c:1},
+  {q:"Luật thay thế phổ dụng (Universal Instantiation) cho phép:", o:["Thay ∃x G(x) bằng G(t) với t là hằng bất kỳ","Thay ∀x G(x) bằng G(t) với t là hạng thức bất kỳ","Thêm lượng từ ∀ vào công thức","Loại bỏ phép phủ định"], c:1},
+  {q:"Trong luật phân giải tổng quát của logic vị từ, ký hiệu θ đại diện cho:", o:["Một luật suy diễn","Một phép thế (hợp nhất)","Một hàm Skolem","Một biến tự do"], c:1},
+  {q:"Cho câu Hear(x,Music)∨Play(x,Tennis) và ¬Play(An,y)∨Study(An). Với phép thế θ=[x/An, y/Tennis], câu phân giải được là:", o:["Hear(An,Music) ∨ Study(An)","Hear(x,Music) ∨ Study(An)","Play(An,Tennis) ∨ Study(An)","Hear(An,Music) ∨ Play(An,Tennis)"], c:0},
+  {q:"Bước nào sau đây KHÔNG thuộc thủ tục chuẩn hóa công thức logic vị từ về CNF?", o:["Loại bỏ dấu kéo theo","Đưa phủ định vào trong bằng De Morgan","Skolem hóa lượng từ tồn tại","Tính bảng chân trị"], c:3},
+
+  // ---- Chứng minh bác bỏ bằng luật phân giải ----
+  {q:"Bước đầu tiên của thuật toán chứng minh bác bỏ bằng luật phân giải là:", o:["Chuyển tất cả câu về CNF","Thêm phủ định của điều cần chứng minh vào KB","Tìm câu rỗng","Áp dụng luật Modus Ponens"], c:1},
+  {q:"Thuật toán chứng minh bác bỏ kết luận THÀNH CÔNG khi:", o:["Không còn câu mới nào được sinh ra","Sinh ra câu rỗng (□)","Tất cả các câu đều là literal đơn","Số câu trong KB không đổi"], c:1},
+  {q:"\u201cCâu rỗng\u201d (empty clause) trong chứng minh bác bỏ biểu thị điều gì?", o:["Một mâu thuẫn logic","Một công thức luôn đúng","Một luật thừa","Một biến chưa gán giá trị"], c:0},
+  {q:"Luật phân giải cho phép loại bỏ:", o:["Một cặp literal đối lập giữa hai clause","Toàn bộ một clause","Các biến không dùng đến","Các hằng số trùng lặp"], c:0},
+  {q:"Muốn chứng minh KB ⊢ α bằng phương pháp bác bỏ, ta cần chỉ ra:", o:["KB ∧ α thỏa được","KB ∧ ¬α không thỏa được (mâu thuẫn)","¬KB ∧ α thỏa được","KB ∨ α luôn đúng"], c:1},
+  {q:"Cho KB = {P, P⇒Q, Q⇒R} và cần chứng minh R. Sau khi thêm ¬R và chuyển CNF, số clause ban đầu là:", o:["2","3","4","5"], c:2},
+  {q:"Trong ví dụ kinh điển \u201cCuriosity killed the cat\u201d, để chứng minh Curiosity đã giết Tuna, bước đầu tiên của phép chứng minh bác bỏ là:", o:["Thêm Kills(Curiosity,Tuna) vào KB","Thêm ¬Kills(Curiosity,Tuna) vào KB","Xóa toàn bộ luật liên quan tới Curiosity","Chuyển ngay sang suy diễn tiến"], c:1},
+  {q:"Chiến lược \u201cUnit Preference\u201d trong luật phân giải có nghĩa là:", o:["Ưu tiên phân giải với clause chỉ có 1 literal trước","Ưu tiên clause dài nhất trước","Chỉ dùng đúng 1 luật duy nhất","Bỏ qua các clause đơn"], c:0},
+  {q:"Nếu áp dụng phân giải mà không sinh thêm được câu mới và cũng không có câu rỗng, ta kết luận:", o:["KB mâu thuẫn","Điều cần chứng minh KHÔNG phải là hệ quả logic của KB","Cần thêm luật mới rồi thử lại","Thuật toán bị lỗi"], c:1},
+  {q:"Trong luật phân giải tổng quát của logic vị từ, hai literal chỉ có thể phân giải với nhau khi:", o:["Chúng giống hệt nhau về mặt ký tự","Chúng đối lập nhau và hợp nhất được (unifiable)","Chúng thuộc cùng một clause","Chúng có cùng số lượng biến"], c:1},
+
+  // ---- Suy diễn tiến ----
+  {q:"Suy diễn tiến (Forward Chaining) xuất phát từ đâu?", o:["Mục tiêu cần chứng minh","Các sự kiện (facts) đã biết","Câu rỗng","Luật cuối cùng trong KB"], c:1},
+  {q:"Suy diễn tiến còn được gọi là chiến lược:", o:["Data-driven (hướng dữ liệu)","Goal-driven (hướng mục tiêu)","Model-driven","Event-driven"], c:0},
+  {q:"Trong suy diễn tiến, một luật được \u201ckích hoạt\u201d (áp dụng) khi:", o:["Vế phải của luật đã có sẵn trong cơ sở sự kiện","Tất cả điều kiện vế trái của luật đều thỏa mãn trong cơ sở sự kiện","Luật đó đứng đầu danh sách luật","Không còn luật nào khác trong KB"], c:1},
+  {q:"Suy diễn tiến dừng lại khi nào?", o:["Đạt được một mục tiêu cụ thể","Không còn luật nào sinh ra được sự kiện mới","Đã áp dụng đúng 10 luật","Gặp câu rỗng"], c:1},
+  {q:"Cho luật A∧B⇒C và cơ sở sự kiện {A}. Kết luận nào đúng?", o:["C được suy ra ngay lập tức","Luật chưa được kích hoạt vì thiếu B","Luật bị loại bỏ khỏi KB","A bị loại khỏi cơ sở sự kiện"], c:1},
+  {q:"Nhược điểm chính của suy diễn tiến so với suy diễn lùi là:", o:["Không thể áp dụng cho hệ chuyên gia","Có thể sinh ra nhiều kết luận không liên quan tới mục tiêu đang quan tâm","Không dùng được với luật dạng IF-THEN","Luôn chậm hơn suy diễn lùi trong mọi trường hợp"], c:1},
+  {q:"Ứng dụng nào sau đây phù hợp nhất với suy diễn tiến?", o:["Hệ chẩn đoán chỉ kiểm tra một bệnh cụ thể do bác sĩ chỉ định","Hệ thống giám sát liên tục sinh cảnh báo từ dữ liệu cảm biến","Hệ hỏi đáp trả lời một câu hỏi cụ thể của người dùng","Trò chơi đố vui theo kịch bản có sẵn"], c:1},
+  {q:"Trong suy diễn tiến, nếu hai luật cùng thỏa điều kiện áp dụng đồng thời, hệ thống cần có:", o:["Chiến lược giải quyết xung đột (conflict resolution)","Luật ưu tiên bắt buộc theo thứ tự bảng chữ cái","Không cần xử lý gì đặc biệt","Dừng suy diễn ngay lập tức"], c:0},
+  {q:"Cho cơ sở luật R1: A⇒B; R2: B⇒C với sự kiện ban đầu {A}. Sau đúng 2 vòng lặp suy diễn tiến, cơ sở sự kiện là:", o:["{A}","{A, B}","{A, B, C}","{B, C}"], c:2},
+  {q:"Suy diễn tiến tương ứng với việc áp dụng liên tục luật suy diễn nào đã học?", o:["Modus Tollens","Modus Ponens tổng quát","Luật phân giải","Luật De Morgan"], c:1},
+
+  // ---- Suy diễn lùi ----
+  {q:"Suy diễn lùi (Backward Chaining) xuất phát từ đâu?", o:["Các sự kiện đã biết","Giả thuyết / mục tiêu cần chứng minh","Luật đầu tiên trong KB","Câu rỗng"], c:1},
+  {q:"Suy diễn lùi còn được gọi là chiến lược:", o:["Data-driven","Goal-driven (hướng mục tiêu)","Random-driven","Rule-driven"], c:1},
+  {q:"Trong suy diễn lùi, khi gặp luật X⇒Y và mục tiêu hiện tại là Y, hệ thống sẽ:", o:["Loại bỏ mục tiêu Y khỏi danh sách","Chuyển mục tiêu thành chứng minh X (các điều kiện vế trái)","Dừng suy diễn ngay","Thêm Y vào cơ sở sự kiện ngay lập tức mà không kiểm tra"], c:1},
+  {q:"Suy diễn lùi chứng minh thành công một giả thuyết khi nào?", o:["Tập giả thuyết con (Hyp) trở thành rỗng — tất cả đã được xác nhận","Không còn luật nào trong KB","Đã duyệt qua toàn bộ cơ sở sự kiện","Sinh ra câu rỗng"], c:0},
+  {q:"Ưu điểm chính của suy diễn lùi là:", o:["Luôn nhanh hơn suy diễn tiến trong mọi trường hợp","Hiệu quả khi chỉ cần kiểm tra một mục tiêu cụ thể, không cần duyệt hết luật","Không cần cơ sở tri thức để hoạt động","Không bao giờ gặp phải đệ quy vô hạn"], c:1},
+  {q:"Hệ chuyên gia MYCIN (chẩn đoán y tế) sử dụng chủ yếu chiến lược suy diễn nào?", o:["Suy diễn tiến","Suy diễn lùi","Suy diễn ngẫu nhiên","Không sử dụng suy diễn"], c:1},
+  {q:"Trong thuật toán suy diễn lùi, phép hợp thành thế θ′ = hợp_thành(θ, θ1) được thực hiện ở bước nào?", o:["Khi chọn giả thuyết đầu tiên trong danh sách","Khi tìm được luật khớp với giả thuyết hiện tại","Khi cơ sở sự kiện đã rỗng","Khi kết thúc toàn bộ thuật toán"], c:1},
+  {q:"Ứng dụng nào sau đây phù hợp nhất với suy diễn lùi?", o:["Hệ thống giám sát liên tục cảnh báo bất thường","Hệ tư vấn trả lời một câu hỏi cụ thể của người dùng","Cập nhật toàn bộ dữ liệu cảm biến theo thời gian thực","Sinh ra tất cả kết luận có thể từ một tập dữ liệu lớn"], c:1},
+  {q:"So với suy diễn tiến, suy diễn lùi có nhược điểm nào sau đây?", o:["Không thể giải thích được kết luận đưa ra","Cần xác định mục tiêu cụ thể trước khi bắt đầu suy diễn","Không thể dùng được với logic vị từ cấp 1","Luôn tốn nhiều bộ nhớ hơn suy diễn tiến"], c:1},
+  {q:"Cho luật A⇒B và giả thuyết cần chứng minh là B, với A đã có sẵn trong cơ sở sự kiện. Theo suy diễn lùi, giả thuyết B sẽ:", o:["Không thể chứng minh được", "Được chứng minh, vì điều kiện A đã đúng trong cơ sở sự kiện", "Cần thêm một luật khác mới chứng minh được", "Bị loại khỏi danh sách giả thuyết mà không cần chứng minh"], c:1},
+];
+
+/* =========================================================
+   STATE
+   ========================================================= */
+const EXAM_SIZE = 35;
+let studentName = "";
+let currentQuiz = [];   // 35 items: {q, options[], correct}
+let startTime = 0;
+let answers = {};       // index -> selected option index
+
+/* =========================================================
+   HELPERS
+   ========================================================= */
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]] = [a[j],a[i]];
+  }
+  return a;
+}
+function show(id){
+  ["screen-start","screen-quiz","screen-result"].forEach(s=>{
+    document.getElementById(s).classList.toggle("hidden", s!==id);
+  });
+  window.scrollTo(0,0);
+}
+function fmtTime(ms){
+  const s = Math.floor(ms/1000);
+  const m = Math.floor(s/60);
+  const ss = String(s%60).padStart(2,"0");
+  return m+":"+ss;
+}
+
+/* =========================================================
+   START
+   ========================================================= */
+document.getElementById("startBtn").addEventListener("click", () => {
+  const name = document.getElementById("studentName").value.trim();
+  const errEl = document.getElementById("nameErr");
+  if(!name){
+    errEl.textContent = "Vui lòng nhập họ tên trước khi bắt đầu làm bài.";
+    document.getElementById("studentName").focus();
+    return;
+  }
+  errEl.textContent = "";
+  studentName = name;
+  buildQuiz();
+  renderQuiz();
+  answers = {};
+  startTime = Date.now();
+  show("screen-quiz");
+});
+document.getElementById("studentName").addEventListener("keydown", (e) => {
+  if(e.key === "Enter") document.getElementById("startBtn").click();
+});
+
+function buildQuiz(){
+  const picked = shuffle(QUESTION_BANK).slice(0, EXAM_SIZE);
+  currentQuiz = picked.map(item => {
+    const order = shuffle([0,1,2,3]);
+    const options = order.map(i => item.o[i]);
+    const correct = order.indexOf(item.c);
+    return { q: item.q, options, correct };
+  });
+}
+
+/* =========================================================
+   QUIZ RENDER
+   ========================================================= */
+function renderQuiz(){
+  document.getElementById("quizWho").textContent = studentName;
+  const list = document.getElementById("questionList");
+  list.innerHTML = "";
+  currentQuiz.forEach((item, idx) => {
+    const card = document.createElement("div");
+    card.className = "qcard";
+    card.id = "qcard-"+idx;
+
+    const num = document.createElement("div");
+    num.className = "qnum";
+    num.textContent = (idx+1);
+
+    const body = document.createElement("div");
+    body.className = "qbody";
+
+    const qt = document.createElement("div");
+    qt.className = "qtext";
+    qt.textContent = (idx+1)+". "+item.q;
+    body.appendChild(qt);
+
+    const letters = ["A","B","C","D"];
+    item.options.forEach((optText, oi) => {
+      const label = document.createElement("label");
+      label.className = "opt";
+      label.id = "opt-"+idx+"-"+oi;
+      label.innerHTML =
+        '<input type="radio" name="q'+idx+'" value="'+oi+'">' +
+        '<span class="otext"><b>'+letters[oi]+'.</b> '+optText+'</span>';
+      label.querySelector("input").addEventListener("change", () => selectAnswer(idx, oi));
+      body.appendChild(label);
+    });
+
+    card.appendChild(num);
+    card.appendChild(body);
+    list.appendChild(card);
+  });
+  updateProgress();
+}
+
+function selectAnswer(qIdx, optIdx){
+  answers[qIdx] = optIdx;
+  const card = document.getElementById("qcard-"+qIdx);
+  card.classList.add("answered");
+  for(let i=0;i<4;i++){
+    const el = document.getElementById("opt-"+qIdx+"-"+i);
+    if(el) el.classList.toggle("selected", i===optIdx);
+  }
+  updateProgress();
+}
+
+function updateProgress(){
+  const answered = Object.keys(answers).length;
+  document.getElementById("quizCount").textContent = answered+"/"+EXAM_SIZE+" đã trả lời";
+  document.getElementById("progressFill").style.width = (answered/EXAM_SIZE*100)+"%";
+  const note = document.getElementById("submitNote");
+  if(answered < EXAM_SIZE){
+    note.textContent = "Còn "+(EXAM_SIZE-answered)+" câu chưa trả lời — vẫn có thể nộp bài.";
+  } else {
+    note.textContent = "Đã trả lời đầy đủ. Sẵn sàng nộp bài!";
+  }
+}
+
+/* =========================================================
+   SUBMIT / GRADE
+   ========================================================= */
+document.getElementById("submitBtn").addEventListener("click", () => {
+  const answered = Object.keys(answers).length;
+  if(answered < EXAM_SIZE){
+    const missing = EXAM_SIZE - answered;
+    const ok = confirm("Bạn còn "+missing+" câu chưa trả lời. Các câu này sẽ tính là sai.\n\nBạn có chắc chắn muốn nộp bài không?");
+    if(!ok) return;
+  }
+  gradeAndShowResult();
+});
+
+function gradeAndShowResult(){
+  const elapsed = Date.now() - startTime;
+  let correctCount = 0;
+  const details = currentQuiz.map((item, idx) => {
+    const chosen = answers.hasOwnProperty(idx) ? answers[idx] : null;
+    const isCorrect = chosen === item.correct;
+    if(isCorrect) correctCount++;
+    return { idx, q: item.q, options: item.options, chosen, correct: item.correct, isCorrect };
+  });
+
+  const scoreOn10 = Math.round((correctCount/EXAM_SIZE)*1000)/100;
+  const percent = Math.round((correctCount/EXAM_SIZE)*100);
+  let rank = "Yếu";
+  if(scoreOn10 >= 8.5) rank = "Giỏi";
+  else if(scoreOn10 >= 7) rank = "Khá";
+  else if(scoreOn10 >= 5) rank = "Trung bình";
+
+  document.getElementById("resultName").textContent = "Thí sinh: "+studentName;
+  document.getElementById("stampScore").textContent = scoreOn10.toFixed(2).replace(/\.00$/,"").replace(/(\.\d)0$/,"$1");
+  document.getElementById("stampRank").textContent = rank;
+  document.getElementById("statCorrect").textContent = correctCount+" / "+EXAM_SIZE;
+  document.getElementById("statPercent").textContent = percent+"%";
+  document.getElementById("statTime").textContent = fmtTime(elapsed);
+  document.getElementById("statDate").textContent = new Date().toLocaleString("vi-VN");
+
+  const stamp = document.getElementById("stampBox");
+  stamp.style.borderColor = scoreOn10 >= 5 ? "var(--green)" : "var(--red)";
+  stamp.style.color = scoreOn10 >= 5 ? "var(--green)" : "var(--red)";
+
+  const detailList = document.getElementById("detailList");
+  detailList.innerHTML = "";
+  const letters = ["A","B","C","D"];
+  details.forEach(d => {
+    const row = document.createElement("div");
+    row.className = "drow";
+    const mark = document.createElement("div");
+    mark.className = "dmark "+(d.isCorrect ? "ok" : "no");
+    mark.textContent = d.isCorrect ? "✓" : "✗";
+
+    const dq = document.createElement("div");
+    dq.className = "dq";
+    const chosenText = d.chosen===null ? "(bỏ trống)" : letters[d.chosen]+". "+d.options[d.chosen];
+    const correctText = letters[d.correct]+". "+d.options[d.correct];
+    let ansHtml = "Bạn chọn: <b class=\""+(d.isCorrect?"right":"wrong")+"\">"+chosenText+"</b>";
+    if(!d.isCorrect){
+      ansHtml += "&nbsp;&nbsp;·&nbsp;&nbsp;Đáp án đúng: <b class=\"right\">"+correctText+"</b>";
+    }
+    dq.innerHTML = "<div class=\"qt\">"+(d.idx+1)+". "+d.q+"</div><div class=\"ans\">"+ansHtml+"</div>";
+
+    row.appendChild(mark);
+    row.appendChild(dq);
+    detailList.appendChild(row);
+  });
+
+  show("screen-result");
+}
+
+/* =========================================================
+   RETRY
+   ========================================================= */
+document.getElementById("retryBtn").addEventListener("click", () => {
+  answers = {};
+  document.getElementById("studentName").value = studentName;
+  document.getElementById("nameErr").textContent = "";
+  show("screen-start");
+});
+</script>
+</body>
+</html>
